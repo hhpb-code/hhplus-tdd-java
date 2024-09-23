@@ -46,7 +46,7 @@ class PointServiceImplTest {
     // then
     assertThat(result.getMessage()).isEqualTo(PointErrorCode.USER_POINT_NOT_FOUND.getMessage());
   }
-  
+
   @Test
   @DisplayName("포인트 충전 성공")
   void shouldSuccessfullyChargePoint() {
@@ -73,4 +73,45 @@ class PointServiceImplTest {
     assertThat(result.updateMillis()).isLessThanOrEqualTo(System.currentTimeMillis());
   }
 
+  @Test
+  @DisplayName("포인트 사용 실패 - userPoint가 null인 경우")
+  void shouldFailToUsePointWhenUserPointIsNull() {
+    // given
+    final Long userId = 1L;
+    final Long amount = 100L;
+    final UserPointCommand.Use command = UserPointCommand.Use.from(userId, amount);
+    doReturn(Optional.empty()).when(pointRepository).findById(userId);
+
+    // when
+    final var result = assertThrows(BusinessException.class, () -> target.use(command));
+
+    // then
+    assertThat(result.getMessage()).isEqualTo(PointErrorCode.USER_POINT_NOT_FOUND.getMessage());
+  }
+
+  @Test
+  @DisplayName("포인트 사용 성공")
+  void shouldSuccessfullyUsePoint() {
+    // given
+    final Long userId = 1L;
+    final Long point = 100L;
+    final Long amount = 50L;
+    final UserPoint userPoint = UserPoint.from(userId, point, System.currentTimeMillis());
+    final UserPoint updatedUserPoint = UserPoint.from(userId, point - amount,
+        System.currentTimeMillis());
+    final UserPointCommand.Use command = UserPointCommand.Use.from(userId, amount);
+    doReturn(Optional.of(userPoint)).when(pointRepository).findById(userId);
+    doReturn(updatedUserPoint).when(pointRepository)
+        .update(argThat(up -> up.id() == userId && up.point() == (point - amount)
+        ));
+
+    // when
+    final var result = target.use(command);
+
+    // then
+    assertThat(result).isNotNull();
+    assertThat(result.id()).isEqualTo(userId);
+    assertThat(result.point()).isEqualTo(point - amount);
+    assertThat(result.updateMillis()).isLessThanOrEqualTo(System.currentTimeMillis());
+  }
 }

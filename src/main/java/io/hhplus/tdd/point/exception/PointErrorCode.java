@@ -15,6 +15,7 @@ public enum PointErrorCode implements ErrorCode {
   USER_POINT_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자 포인트를 찾을 수 없습니다."),
   POINT_HISTORY_ID_INVALID(HttpStatus.BAD_REQUEST, "유효하지 않은 포인트 이력 ID입니다."),
   INVALID_TRANSACTION_TYPE(HttpStatus.BAD_REQUEST, "유효하지 않은 거래 유형입니다."),
+  POINT_NOT_ENOUGH(HttpStatus.BAD_REQUEST, "포인트가 부족합니다."),
   ;
 
   private final HttpStatus status;

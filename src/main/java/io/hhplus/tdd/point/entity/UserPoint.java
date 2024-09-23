@@ -34,4 +34,12 @@ public record UserPoint(
   public UserPoint addPoint(Long amount) {
     return new UserPoint(id, point + amount, System.currentTimeMillis());
   }
+
+  public UserPoint usePoint(Long amount) {
+    if (point < amount) {
+      throw new BusinessException(PointErrorCode.POINT_NOT_ENOUGH);
+    }
+
+    return new UserPoint(id, point - amount, System.currentTimeMillis());
+  }
 }

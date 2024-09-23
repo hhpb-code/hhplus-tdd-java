@@ -2,6 +2,7 @@ package io.hhplus.tdd.point.service.impl;
 
 import io.hhplus.tdd.error.BusinessException;
 import io.hhplus.tdd.point.dto.UserPointCommand;
+import io.hhplus.tdd.point.dto.UserPointCommand.Use;
 import io.hhplus.tdd.point.entity.PointHistory;
 import io.hhplus.tdd.point.entity.UserPoint;
 import io.hhplus.tdd.point.exception.PointErrorCode;
@@ -29,6 +30,20 @@ public class PointServiceImpl implements PointService {
 
     pointHistoryRepository.insert(
         PointHistory.from(userPoint.id(), command.amount(), TransactionType.CHARGE,
+            System.currentTimeMillis()));
+
+    return updatedUserPoint;
+  }
+
+  @Override
+  public UserPoint use(Use command) {
+    final var userPoint = pointRepository.findById(command.userId())
+        .orElseThrow(() -> new BusinessException(PointErrorCode.USER_POINT_NOT_FOUND));
+
+    final var updatedUserPoint = pointRepository.update(userPoint.usePoint(command.amount()));
+
+    pointHistoryRepository.insert(
+        PointHistory.from(userPoint.id(), command.amount(), TransactionType.USE,
             System.currentTimeMillis()));
 
     return updatedUserPoint;

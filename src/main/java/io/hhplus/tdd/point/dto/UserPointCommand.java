@@ -22,4 +22,20 @@ public class UserPointCommand {
     }
   }
 
+  public record Use(Long userId, Long amount) {
+
+    public Use {
+      if (userId == null) {
+        throw new BusinessException(PointErrorCode.INVALID_USER_ID);
+      }
+
+      if (amount == null || amount <= 0) {
+        throw new BusinessException(PointErrorCode.INVALID_AMOUNT);
+      }
+    }
+
+    public static Use from(Long userId, Long amount) {
+      return new Use(userId, amount);
+    }
+  }
 }

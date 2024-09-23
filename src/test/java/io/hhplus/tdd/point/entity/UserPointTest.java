@@ -110,4 +110,40 @@ class UserPointTest {
     assertThat(result.updateMillis()).isLessThanOrEqualTo(System.currentTimeMillis());
   }
 
+  @Test
+  @DisplayName("UserPoint 포인트 사용 실패 - 포인트가 부족한 경우")
+  void shouldFailToUsePointWhenPointIsNotEnough() {
+    // given
+    final Long id = 1L;
+    final Long point = 100L;
+    final Long updateMillis = System.currentTimeMillis();
+    final var userPoint = UserPoint.from(id, point, updateMillis);
+    final Long amount = 101L;
+
+    // when
+    final var result = assertThrows(BusinessException.class, () -> userPoint.usePoint(amount));
+
+    // then
+    assertThat(result.getErrorCode()).isEqualTo(PointErrorCode.POINT_NOT_ENOUGH);
+  }
+
+  @Test
+  @DisplayName("UserPoint 포인트 사용 성공")
+  void shouldSuccessfullyUsePoint() {
+    // given
+    final Long id = 1L;
+    final Long point = 100L;
+    final Long updateMillis = System.currentTimeMillis();
+    final var userPoint = UserPoint.from(id, point, updateMillis);
+    final Long amount = 100L;
+
+    // when
+    final var result = userPoint.usePoint(amount);
+
+    // then
+    assertThat(result.id()).isEqualTo(id);
+    assertThat(result.point()).isEqualTo(point - amount);
+    assertThat(result.updateMillis()).isLessThanOrEqualTo(System.currentTimeMillis());
+  }
+
 }
