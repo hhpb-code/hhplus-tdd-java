@@ -91,4 +91,23 @@ class UserPointTest {
     assertThat(userPoint.updateMillis()).isLessThanOrEqualTo(System.currentTimeMillis());
   }
 
+  @Test
+  @DisplayName("UserPoint 포인트 추가 성공")
+  void shouldSuccessfullyAddPoint() {
+    // given
+    final Long id = 1L;
+    final Long point = 100L;
+    final Long updateMillis = System.currentTimeMillis();
+    final var userPoint = UserPoint.from(id, point, updateMillis);
+    final Long amount = 100L;
+
+    // when
+    final var result = userPoint.addPoint(amount);
+
+    // then
+    assertThat(result.id()).isEqualTo(id);
+    assertThat(result.point()).isEqualTo(point + amount);
+    assertThat(result.updateMillis()).isLessThanOrEqualTo(System.currentTimeMillis());
+  }
+
 }

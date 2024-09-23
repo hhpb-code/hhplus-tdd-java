@@ -1,8 +1,11 @@
 package io.hhplus.tdd.point.controller;
 
+import io.hhplus.tdd.point.dto.UserPointCommand;
 import io.hhplus.tdd.point.entity.PointHistory;
 import io.hhplus.tdd.point.entity.UserPoint;
+import io.hhplus.tdd.point.service.PointService;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,9 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/point")
+@RequiredArgsConstructor
 public class PointController {
 
   private static final Logger log = LoggerFactory.getLogger(PointController.class);
+
+  private final PointService pointService;
 
   /**
    * TODO - 특정 유저의 포인트를 조회하는 기능을 작성해주세요.
@@ -43,10 +49,10 @@ public class PointController {
    */
   @PatchMapping("{id}/charge")
   public UserPoint charge(
-      @PathVariable long id,
-      @RequestBody long amount
+      @PathVariable Long id,
+      @RequestBody Long amount
   ) {
-    return new UserPoint(0, 0, 0);
+    return pointService.charge(UserPointCommand.Charge.from(id, amount));
   }
 
   /**

@@ -12,6 +12,7 @@ public enum PointErrorCode implements ErrorCode {
   INVALID_USER_ID(HttpStatus.BAD_REQUEST, "유효하지 않은 사용자 ID입니다."),
   INVALID_AMOUNT(HttpStatus.BAD_REQUEST, "유효하지 않은 금액입니다."),
   INVALID_UPDATE_MILLIS(HttpStatus.BAD_REQUEST, "유효하지 않은 업데이트 시간입니다."),
+  USER_POINT_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자 포인트를 찾을 수 없습니다."),
   ;
 
   private final HttpStatus status;
