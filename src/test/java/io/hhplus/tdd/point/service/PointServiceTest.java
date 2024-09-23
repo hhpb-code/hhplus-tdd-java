@@ -4,14 +4,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.hhplus.tdd.point.dto.UserPointCommand;
 import io.hhplus.tdd.point.entity.UserPoint;
+import io.hhplus.tdd.point.repository.PointHistoryRepository;
 import io.hhplus.tdd.point.repository.PointRepository;
+import io.hhplus.tdd.point.type.TransactionType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 
 @SpringBootTest
-public class PointServiceTest {
+class PointServiceTest {
 
   @Autowired
   private PointService target;
@@ -19,6 +22,11 @@ public class PointServiceTest {
   @Autowired
   private PointRepository pointRepository;
 
+  @Autowired
+  private PointHistoryRepository pointHistoryRepository;
+
+  // NOTE: Test 간의 의존성을 없애기 위해 DirtiesContext를 사용합니다.
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
   @Test
   @DisplayName("포인트 충전 성공")
   void shouldSuccessfullyChargePoint() {
@@ -38,5 +46,11 @@ public class PointServiceTest {
     assertThat(result.id()).isEqualTo(userId);
     assertThat(result.point()).isEqualTo(point + amount);
     assertThat(result.updateMillis()).isLessThanOrEqualTo(System.currentTimeMillis());
+
+    final var pointHistory = pointHistoryRepository.findAllByUserId(userId).get(0);
+    assertThat(pointHistory.userId()).isEqualTo(userId);
+    assertThat(pointHistory.amount()).isEqualTo(amount);
+    assertThat(pointHistory.type()).isEqualTo(TransactionType.CHARGE);
+    assertThat(pointHistory.updateMillis()).isLessThanOrEqualTo(System.currentTimeMillis());
   }
 }

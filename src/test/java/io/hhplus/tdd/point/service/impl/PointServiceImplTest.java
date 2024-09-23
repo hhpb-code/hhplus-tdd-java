@@ -9,6 +9,7 @@ import io.hhplus.tdd.error.BusinessException;
 import io.hhplus.tdd.point.dto.UserPointCommand;
 import io.hhplus.tdd.point.entity.UserPoint;
 import io.hhplus.tdd.point.exception.PointErrorCode;
+import io.hhplus.tdd.point.repository.PointHistoryRepository;
 import io.hhplus.tdd.point.repository.PointRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -27,6 +28,9 @@ class PointServiceImplTest {
   @Mock
   private PointRepository pointRepository;
 
+  @Mock
+  private PointHistoryRepository pointHistoryRepository;
+
   @Test
   @DisplayName("포인트 충전 실패 - userPoint가 null인 경우")
   void shouldFailToChargePointWhenUserPointIsNull() {
@@ -42,8 +46,7 @@ class PointServiceImplTest {
     // then
     assertThat(result.getMessage()).isEqualTo(PointErrorCode.USER_POINT_NOT_FOUND.getMessage());
   }
-
-
+  
   @Test
   @DisplayName("포인트 충전 성공")
   void shouldSuccessfullyChargePoint() {
