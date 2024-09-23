@@ -1,4 +1,4 @@
-package io.hhplus.tdd.point.repository.impl;
+package io.hhplus.tdd.point.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -10,12 +10,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest(classes = {PointRepositoryImpl.class, UserPointTable.class})
-class PointRepositoryImplTest {
+@SpringBootTest
+public class PointRepositoryTest {
 
   private static final long USER_ID = 1L;
+
   @Autowired
-  private PointRepositoryImpl target;
+  private PointRepository target;
+
   @Autowired
   private UserPointTable userPointTable;
 
