@@ -33,7 +33,7 @@ public class PointRepositoryTest {
     final Long id = 1L;
 
     // when
-    final var result = target.findById(id);
+    final var result = target.findById(id).get();
 
     // then
     assertThat(result).isNotNull();
