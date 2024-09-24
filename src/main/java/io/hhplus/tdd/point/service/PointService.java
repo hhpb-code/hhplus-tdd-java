@@ -1,7 +1,9 @@
 package io.hhplus.tdd.point.service;
 
 import io.hhplus.tdd.point.dto.UserPointCommand;
+import io.hhplus.tdd.point.entity.PointHistory;
 import io.hhplus.tdd.point.entity.UserPoint;
+import java.util.List;
 
 public interface PointService {
 
@@ -10,4 +12,6 @@ public interface PointService {
   UserPoint use(UserPointCommand.Use command);
 
   UserPoint getUserPoint(UserPointCommand.GetUserPoint command);
+
+  List<PointHistory> getUserPointHistories(UserPointCommand.GetUserPointHistories command);
 }

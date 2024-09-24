@@ -7,10 +7,13 @@ import static org.mockito.Mockito.doReturn;
 
 import io.hhplus.tdd.error.BusinessException;
 import io.hhplus.tdd.point.dto.UserPointCommand;
+import io.hhplus.tdd.point.entity.PointHistory;
 import io.hhplus.tdd.point.entity.UserPoint;
 import io.hhplus.tdd.point.exception.PointErrorCode;
 import io.hhplus.tdd.point.repository.PointHistoryRepository;
 import io.hhplus.tdd.point.repository.PointRepository;
+import io.hhplus.tdd.point.type.TransactionType;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -167,4 +170,46 @@ class PointServiceImplTest {
     assertThat(result.point()).isEqualTo(point);
     assertThat(result.updateMillis()).isLessThanOrEqualTo(System.currentTimeMillis());
   }
+
+  @Test
+  @DisplayName("포인트 충전/사용 내역 조회 성공 - 내역 없음")
+  void shouldSuccessfullyGetUserPointHistoriesWhenEmpty() {
+    // given
+    final Long userId = 1L;
+    final UserPointCommand.GetUserPointHistories command = UserPointCommand.GetUserPointHistories.from(
+        userId);
+    doReturn(List.of()).when(pointHistoryRepository).findAllByUserId(userId);
+
+    // when
+    final var result = target.getUserPointHistories(command);
+
+    // then
+    assertThat(result).isNotNull();
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  @DisplayName("포인트 충전/사용 내역 조회 성공")
+  void shouldSuccessfullyGetUserPointHistories() {
+    // given
+    final Long userId = 1L;
+    final UserPointCommand.GetUserPointHistories command = UserPointCommand.GetUserPointHistories.from(
+        userId);
+    final PointHistory pointHistory1 = PointHistory.from(userId, 100L, TransactionType.CHARGE,
+        System.currentTimeMillis());
+    final PointHistory pointHistory2 = PointHistory.from(userId, 50L, TransactionType.USE,
+        System.currentTimeMillis());
+    final List<PointHistory> pointHistories = List.of(pointHistory1, pointHistory2);
+    doReturn(pointHistories).when(pointHistoryRepository).findAllByUserId(userId);
+
+    // when
+    final var result = target.getUserPointHistories(command);
+
+    // then
+    assertThat(result).isNotNull();
+    assertThat(result).hasSize(2);
+    assertThat(result.get(0)).isEqualTo(pointHistory1);
+    assertThat(result.get(1)).isEqualTo(pointHistory2);
+  }
+
 }

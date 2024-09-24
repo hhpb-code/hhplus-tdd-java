@@ -51,4 +51,17 @@ public class UserPointCommand {
       return new GetUserPoint(userId);
     }
   }
+
+  public record GetUserPointHistories(Long userId) {
+
+    public GetUserPointHistories {
+      if (userId == null) {
+        throw new BusinessException(PointErrorCode.INVALID_USER_ID);
+      }
+    }
+
+    public static GetUserPointHistories from(Long userId) {
+      return new GetUserPointHistories(userId);
+    }
+  }
 }

@@ -157,4 +157,32 @@ class UserPointCommandTest {
     assertThat(result.userId()).isEqualTo(userId);
   }
 
+  @Test
+  @DisplayName("UserPointCommand.GetUserPointHistories 생성 실패 - userId가 null")
+  void shouldFailToCreateUserPointCommandGetUserPointHistoriesWhenUserIdIsNull() {
+    // given
+    final Long userId = null;
+
+    // when
+    final BusinessException result = assertThrows(BusinessException.class,
+        () -> UserPointCommand.GetUserPointHistories.from(userId));
+
+    // then
+    assertThat(result.getMessage()).isEqualTo(PointErrorCode.INVALID_USER_ID.getMessage());
+  }
+
+  @Test
+  @DisplayName("UserPointCommand.GetUserPointHistories 생성 성공")
+  void shouldCreateUserPointCommandGetUserPointHistories() {
+    // given
+    final Long userId = 1L;
+
+    // when
+    final UserPointCommand.GetUserPointHistories result = UserPointCommand.GetUserPointHistories.from(
+        userId);
+
+    // then
+    assertThat(result.userId()).isEqualTo(userId);
+  }
+
 }

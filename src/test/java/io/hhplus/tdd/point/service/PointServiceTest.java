@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.hhplus.tdd.error.BusinessException;
 import io.hhplus.tdd.point.dto.UserPointCommand;
+import io.hhplus.tdd.point.entity.PointHistory;
 import io.hhplus.tdd.point.entity.UserPoint;
 import io.hhplus.tdd.point.repository.PointHistoryRepository;
 import io.hhplus.tdd.point.repository.PointRepository;
@@ -144,5 +145,58 @@ class PointServiceTest {
     assertThat(result.id()).isEqualTo(userId);
     assertThat(result.point()).isEqualTo(point);
     assertThat(result.updateMillis()).isLessThanOrEqualTo(System.currentTimeMillis());
+  }
+
+  // NOTE: Test 간의 의존성을 없애기 위해 DirtiesContext를 사용합니다.
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+  @Test
+  @DisplayName("포인트 충전/사용 내역 조회 성공 - 내역 없음")
+  void shouldSuccessfullyGetUserPointHistoriesWhenNoHistories() {
+    // given
+    final Long userId = 1L;
+    final UserPointCommand.GetUserPointHistories command = UserPointCommand.GetUserPointHistories.from(
+        userId);
+
+    // when
+    final var result = target.getUserPointHistories(command);
+
+    // then
+    assertThat(result).isNotNull();
+    assertThat(result).isEmpty();
+  }
+
+  // NOTE: Test 간의 의존성을 없애기 위해 DirtiesContext를 사용합니다.
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+  @Test
+  @DisplayName("포인트 충전/사용 내역 조회 성공")
+  void shouldSuccessfullyGetUserPointHistories() {
+    // given
+    final Long userId = 1L;
+    final PointHistory pointHistory1 = PointHistory.from(userId, 100L, TransactionType.CHARGE,
+        System.currentTimeMillis());
+    final PointHistory pointHistory2 = PointHistory.from(userId, 50L, TransactionType.USE,
+        System.currentTimeMillis());
+
+    pointHistoryRepository.insert(pointHistory1);
+    pointHistoryRepository.insert(pointHistory2);
+    final UserPointCommand.GetUserPointHistories command = UserPointCommand.GetUserPointHistories.from(
+        userId);
+
+    // when
+    final var result = target.getUserPointHistories(command);
+
+    // then
+    assertThat(result).isNotNull();
+    assertThat(result).hasSize(2);
+    assertThat(result.get(0).id()).isEqualTo(1);
+    assertThat(result.get(0).userId()).isEqualTo(userId);
+    assertThat(result.get(0).amount()).isEqualTo(100);
+    assertThat(result.get(0).type()).isEqualTo(TransactionType.CHARGE);
+    assertThat(result.get(0).updateMillis()).isLessThanOrEqualTo(System.currentTimeMillis());
+    assertThat(result.get(1).id()).isEqualTo(2);
+    assertThat(result.get(1).userId()).isEqualTo(userId);
+    assertThat(result.get(1).amount()).isEqualTo(50);
+    assertThat(result.get(1).type()).isEqualTo(TransactionType.USE);
+    assertThat(result.get(1).updateMillis()).isLessThanOrEqualTo(System.currentTimeMillis());
   }
 }

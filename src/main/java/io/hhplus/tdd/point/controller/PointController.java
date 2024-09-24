@@ -41,7 +41,7 @@ public class PointController {
   public List<PointHistory> history(
       @PathVariable long id
   ) {
-    return List.of();
+    return pointService.getUserPointHistories(UserPointCommand.GetUserPointHistories.from(id));
   }
 
   /**
