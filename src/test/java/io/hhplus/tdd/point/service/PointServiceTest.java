@@ -127,17 +127,17 @@ class PointServiceTest {
 
   @Test
   @DisplayName("포인트 조회 성공")
-  void shouldSuccessfullyFindPoint() {
+  void shouldSuccessfullyGetUserPoint() {
     // given
     final Long userId = 1L;
     final Long point = 100L;
     final UserPoint userPoint = UserPoint.from(userId, point, System.currentTimeMillis());
     // NOTE: insert가 없어 update로 초기값 설정
     pointRepository.update(userPoint);
-    final UserPointCommand.FindById command = UserPointCommand.FindById.from(userId);
+    final UserPointCommand.GetUserPoint command = UserPointCommand.GetUserPoint.from(userId);
 
     // when
-    final var result = target.findById(command);
+    final var result = target.getUserPoint(command);
 
     // then
     assertThat(result).isNotNull();

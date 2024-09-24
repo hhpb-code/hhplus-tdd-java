@@ -2,8 +2,6 @@ package io.hhplus.tdd.point.service.impl;
 
 import io.hhplus.tdd.error.BusinessException;
 import io.hhplus.tdd.point.dto.UserPointCommand;
-import io.hhplus.tdd.point.dto.UserPointCommand.FindById;
-import io.hhplus.tdd.point.dto.UserPointCommand.Use;
 import io.hhplus.tdd.point.entity.PointHistory;
 import io.hhplus.tdd.point.entity.UserPoint;
 import io.hhplus.tdd.point.exception.PointErrorCode;
@@ -37,7 +35,7 @@ public class PointServiceImpl implements PointService {
   }
 
   @Override
-  public UserPoint use(Use command) {
+  public UserPoint use(UserPointCommand.Use command) {
     final var userPoint = pointRepository.findById(command.userId())
         .orElseThrow(() -> new BusinessException(PointErrorCode.USER_POINT_NOT_FOUND));
 
@@ -51,7 +49,7 @@ public class PointServiceImpl implements PointService {
   }
 
   @Override
-  public UserPoint findById(FindById command) {
+  public UserPoint getUserPoint(UserPointCommand.GetUserPoint command) {
     return pointRepository.findById(command.userId()).orElse(null);
   }
 }

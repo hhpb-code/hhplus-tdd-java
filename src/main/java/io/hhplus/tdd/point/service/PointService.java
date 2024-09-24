@@ -9,5 +9,5 @@ public interface PointService {
 
   UserPoint use(UserPointCommand.Use command);
 
-  UserPoint findById(UserPointCommand.FindById command);
+  UserPoint getUserPoint(UserPointCommand.GetUserPoint command);
 }

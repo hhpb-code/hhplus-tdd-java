@@ -31,7 +31,7 @@ public class PointController {
   public UserPoint point(
       @PathVariable long id
   ) {
-    return pointService.findById(UserPointCommand.FindById.from(id));
+    return pointService.getUserPoint(UserPointCommand.GetUserPoint.from(id));
   }
 
   /**

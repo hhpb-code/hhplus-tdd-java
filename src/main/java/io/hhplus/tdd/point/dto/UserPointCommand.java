@@ -39,16 +39,16 @@ public class UserPointCommand {
     }
   }
 
-  public record FindById(Long userId) {
+  public record GetUserPoint(Long userId) {
 
-    public FindById {
+    public GetUserPoint {
       if (userId == null) {
         throw new BusinessException(PointErrorCode.INVALID_USER_ID);
       }
     }
 
-    public static FindById from(Long userId) {
-      return new FindById(userId);
+    public static GetUserPoint from(Long userId) {
+      return new GetUserPoint(userId);
     }
   }
 }
