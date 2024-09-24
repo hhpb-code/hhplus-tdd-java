@@ -32,6 +32,10 @@ public record UserPoint(
   }
 
   public UserPoint addPoint(Long amount) {
+    if (Long.MAX_VALUE - point < amount) {
+      throw new BusinessException(PointErrorCode.EXCEED_MAX_POINT);
+    }
+
     return new UserPoint(id, point + amount, System.currentTimeMillis());
   }
 

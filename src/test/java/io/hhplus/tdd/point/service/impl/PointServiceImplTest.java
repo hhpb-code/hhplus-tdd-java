@@ -48,6 +48,24 @@ class PointServiceImplTest {
   }
 
   @Test
+  @DisplayName("포인트 충전 실패 - 최대 포인트 초과")
+  void shouldFailToChargePointWhenExceedMaxPoint() {
+    // given
+    final Long userId = 1L;
+    final Long point = Long.MAX_VALUE;
+    final Long amount = 1L;
+    final UserPoint userPoint = UserPoint.from(userId, point, System.currentTimeMillis());
+    final UserPointCommand.Charge command = UserPointCommand.Charge.from(userId, amount);
+    doReturn(Optional.of(userPoint)).when(pointRepository).findById(userId);
+
+    // when
+    final var result = assertThrows(BusinessException.class, () -> target.charge(command));
+
+    // then
+    assertThat(result.getMessage()).isEqualTo(PointErrorCode.EXCEED_MAX_POINT.getMessage());
+  }
+
+  @Test
   @DisplayName("포인트 충전 성공")
   void shouldSuccessfullyChargePoint() {
     // given
