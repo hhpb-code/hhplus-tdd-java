@@ -38,4 +38,17 @@ public class UserPointCommand {
       return new Use(userId, amount);
     }
   }
+
+  public record FindById(Long userId) {
+
+    public FindById {
+      if (userId == null) {
+        throw new BusinessException(PointErrorCode.INVALID_USER_ID);
+      }
+    }
+
+    public static FindById from(Long userId) {
+      return new FindById(userId);
+    }
+  }
 }

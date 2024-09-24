@@ -8,4 +8,6 @@ public interface PointService {
   UserPoint charge(UserPointCommand.Charge command);
 
   UserPoint use(UserPointCommand.Use command);
+
+  UserPoint findById(UserPointCommand.FindById command);
 }

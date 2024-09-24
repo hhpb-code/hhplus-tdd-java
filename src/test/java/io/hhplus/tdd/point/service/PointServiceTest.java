@@ -125,4 +125,24 @@ class PointServiceTest {
     assertThat(pointHistory.updateMillis()).isLessThanOrEqualTo(System.currentTimeMillis());
   }
 
+  @Test
+  @DisplayName("포인트 조회 성공")
+  void shouldSuccessfullyFindPoint() {
+    // given
+    final Long userId = 1L;
+    final Long point = 100L;
+    final UserPoint userPoint = UserPoint.from(userId, point, System.currentTimeMillis());
+    // NOTE: insert가 없어 update로 초기값 설정
+    pointRepository.update(userPoint);
+    final UserPointCommand.FindById command = UserPointCommand.FindById.from(userId);
+
+    // when
+    final var result = target.findById(command);
+
+    // then
+    assertThat(result).isNotNull();
+    assertThat(result.id()).isEqualTo(userId);
+    assertThat(result.point()).isEqualTo(point);
+    assertThat(result.updateMillis()).isLessThanOrEqualTo(System.currentTimeMillis());
+  }
 }

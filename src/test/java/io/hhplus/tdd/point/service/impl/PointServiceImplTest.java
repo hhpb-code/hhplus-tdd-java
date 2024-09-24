@@ -132,4 +132,39 @@ class PointServiceImplTest {
     assertThat(result.point()).isEqualTo(point - amount);
     assertThat(result.updateMillis()).isLessThanOrEqualTo(System.currentTimeMillis());
   }
+
+  @Test
+  @DisplayName("포인트 조회 성공 - userPoint가 null인 경우")
+  void shouldReturnNullWhenUserPointIsNull() {
+    // given
+    final Long userId = 1L;
+    final UserPointCommand.FindById command = UserPointCommand.FindById.from(userId);
+    doReturn(Optional.empty()).when(pointRepository).findById(userId);
+
+    // when
+    final var result = target.findById(command);
+
+    // then
+    assertThat(result).isNull();
+  }
+
+  @Test
+  @DisplayName("포인트 조회 성공")
+  void shouldSuccessfullyFindUserPoint() {
+    // given
+    final Long userId = 1L;
+    final Long point = 100L;
+    final UserPoint userPoint = UserPoint.from(userId, point, System.currentTimeMillis());
+    final UserPointCommand.FindById command = UserPointCommand.FindById.from(userId);
+    doReturn(Optional.of(userPoint)).when(pointRepository).findById(userId);
+
+    // when
+    final var result = target.findById(command);
+
+    // then
+    assertThat(result).isNotNull();
+    assertThat(result.id()).isEqualTo(userId);
+    assertThat(result.point()).isEqualTo(point);
+    assertThat(result.updateMillis()).isLessThanOrEqualTo(System.currentTimeMillis());
+  }
 }

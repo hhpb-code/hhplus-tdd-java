@@ -2,6 +2,7 @@ package io.hhplus.tdd.point.service.impl;
 
 import io.hhplus.tdd.error.BusinessException;
 import io.hhplus.tdd.point.dto.UserPointCommand;
+import io.hhplus.tdd.point.dto.UserPointCommand.FindById;
 import io.hhplus.tdd.point.dto.UserPointCommand.Use;
 import io.hhplus.tdd.point.entity.PointHistory;
 import io.hhplus.tdd.point.entity.UserPoint;
@@ -47,5 +48,10 @@ public class PointServiceImpl implements PointService {
             System.currentTimeMillis()));
 
     return updatedUserPoint;
+  }
+
+  @Override
+  public UserPoint findById(FindById command) {
+    return pointRepository.findById(command.userId()).orElse(null);
   }
 }
