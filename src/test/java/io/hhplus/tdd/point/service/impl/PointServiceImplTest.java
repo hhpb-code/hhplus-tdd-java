@@ -137,7 +137,7 @@ class PointServiceImplTest {
   }
 
   @Test
-  @DisplayName("포인트 조회 성공 - userPoint가 null인 경우")
+  @DisplayName("포인트 조회 실패 - userPoint가 null인 경우")
   void shouldReturnNullWhenUserPointIsNull() {
     // given
     final Long userId = 1L;
