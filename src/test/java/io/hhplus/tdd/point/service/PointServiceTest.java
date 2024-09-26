@@ -233,6 +233,8 @@ class PointServiceTest {
     assertThat(result.id()).isEqualTo(userId);
     assertThat(result.point()).isEqualTo(point + amounts.stream().reduce(0L, Long::sum));
     assertThat(result.updateMillis()).isLessThanOrEqualTo(System.currentTimeMillis());
+    final var pointHistories = pointHistoryRepository.findAllByUserId(userId);
+    assertThat(pointHistories).hasSize(numOperations);
   }
 
   // NOTE: Test 간의 의존성을 없애기 위해 DirtiesContext를 사용합니다.
@@ -264,6 +266,8 @@ class PointServiceTest {
     assertThat(result.id()).isEqualTo(userId);
     assertThat(result.point()).isEqualTo(point - amounts.stream().reduce(0L, Long::sum));
     assertThat(result.updateMillis()).isLessThanOrEqualTo(System.currentTimeMillis());
+    final var pointHistories = pointHistoryRepository.findAllByUserId(userId);
+    assertThat(pointHistories).hasSize(numOperations);
   }
 
   // NOTE: Test 간의 의존성을 없애기 위해 DirtiesContext를 사용합니다.
@@ -297,13 +301,13 @@ class PointServiceTest {
 
     // then
     final var result = pointRepository.findById(userId).orElseThrow();
-    final var pointHistories = pointHistoryRepository.findAllByUserId(userId);
-    System.out.println(pointHistories);
     assertThat(result.id()).isEqualTo(userId);
     assertThat(result.point()).isEqualTo(
         point + amounts.stream().filter(i -> i % 2 == 0).reduce(0L, Long::sum)
             - amounts.stream().filter(i -> i % 2 != 0).reduce(0L, Long::sum));
     assertThat(result.updateMillis()).isLessThanOrEqualTo(System.currentTimeMillis());
+    final var pointHistories = pointHistoryRepository.findAllByUserId(userId);
+    assertThat(pointHistories).hasSize(numOperations);
   }
 
 }
