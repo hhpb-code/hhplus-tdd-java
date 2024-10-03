@@ -11,6 +11,9 @@ import io.hhplus.tdd.point.repository.PointRepository;
 import io.hhplus.tdd.point.service.PointService;
 import io.hhplus.tdd.point.type.TransactionType;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,35 +22,49 @@ import org.springframework.stereotype.Service;
 public class PointServiceImpl implements PointService {
 
   private final PointRepository pointRepository;
-
   private final PointHistoryRepository pointHistoryRepository;
+  private final ConcurrentHashMap<Long, Lock> locks = new ConcurrentHashMap<>();
 
   @Override
   public UserPoint charge(UserPointCommand.Charge command) {
-    final var userPoint = pointRepository.findById(command.userId())
-        .orElseThrow(() -> new BusinessException(PointErrorCode.USER_POINT_NOT_FOUND));
+    Lock lock = locks.computeIfAbsent(command.userId(), k -> new ReentrantLock());
+    lock.lock();
+    try {
+      UserPoint userPoint = pointRepository.findById(command.userId())
+          .orElseThrow(() -> new BusinessException(PointErrorCode.USER_POINT_NOT_FOUND));
 
-    final var updatedUserPoint = pointRepository.update(userPoint.addPoint(command.amount()));
+      UserPoint updatedUserPoint = userPoint.addPoint(command.amount());
+      UserPoint savedUserPoint = pointRepository.update(updatedUserPoint);
 
-    pointHistoryRepository.insert(
-        PointHistory.from(userPoint.id(), command.amount(), TransactionType.CHARGE,
-            System.currentTimeMillis()));
+      pointHistoryRepository.insert(
+          PointHistory.from(userPoint.id(), command.amount(), TransactionType.CHARGE,
+              System.currentTimeMillis()));
 
-    return updatedUserPoint;
+      return savedUserPoint;
+    } finally {
+      lock.unlock();
+    }
   }
 
   @Override
   public UserPoint use(UserPointCommand.Use command) {
-    final var userPoint = pointRepository.findById(command.userId())
-        .orElseThrow(() -> new BusinessException(PointErrorCode.USER_POINT_NOT_FOUND));
+    Lock lock = locks.computeIfAbsent(command.userId(), k -> new ReentrantLock());
+    lock.lock();
+    try {
+      UserPoint userPoint = pointRepository.findById(command.userId())
+          .orElseThrow(() -> new BusinessException(PointErrorCode.USER_POINT_NOT_FOUND));
 
-    final var updatedUserPoint = pointRepository.update(userPoint.usePoint(command.amount()));
+      UserPoint updatedUserPoint = userPoint.usePoint(command.amount());
+      UserPoint savedUserPoint = pointRepository.update(updatedUserPoint);
 
-    pointHistoryRepository.insert(
-        PointHistory.from(userPoint.id(), command.amount(), TransactionType.USE,
-            System.currentTimeMillis()));
+      pointHistoryRepository.insert(
+          PointHistory.from(userPoint.id(), command.amount(), TransactionType.USE,
+              System.currentTimeMillis()));
 
-    return updatedUserPoint;
+      return savedUserPoint;
+    } finally {
+      lock.unlock();
+    }
   }
 
   @Override

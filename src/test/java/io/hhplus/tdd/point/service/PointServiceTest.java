@@ -10,6 +10,9 @@ import io.hhplus.tdd.point.entity.UserPoint;
 import io.hhplus.tdd.point.repository.PointHistoryRepository;
 import io.hhplus.tdd.point.repository.PointRepository;
 import io.hhplus.tdd.point.type.TransactionType;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -199,4 +202,112 @@ class PointServiceTest {
     assertThat(result.get(1).type()).isEqualTo(TransactionType.USE);
     assertThat(result.get(1).updateMillis()).isLessThanOrEqualTo(System.currentTimeMillis());
   }
+
+  // NOTE: Test 간의 의존성을 없애기 위해 DirtiesContext를 사용합니다.
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+  @Test
+  @DisplayName("포인트 충전 동시성 검증")
+  void shouldSuccessfullyChargePointConcurrently() {
+    // given
+    final Long userId = 1L;
+    final Long point = 50L;
+    final UserPoint userPoint = UserPoint.from(userId, point, System.currentTimeMillis());
+    // NOTE: insert가 없어 update로 초기값 설정
+    pointRepository.update(userPoint);
+    final int numOperations = 10;
+    final List<Long> amounts = IntStream.range(0, numOperations)
+        .mapToObj(i -> 100L * (i + 1))
+        .toList();
+
+    List<CompletableFuture<Void>> futures = amounts.stream()
+        .map(i -> CompletableFuture.runAsync(
+            () -> target.charge(UserPointCommand.Charge.from(userId, i)))
+        )
+        .toList();
+
+    // when
+    CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+    // then
+    final var result = pointRepository.findById(userId).orElseThrow();
+    assertThat(result.id()).isEqualTo(userId);
+    assertThat(result.point()).isEqualTo(point + amounts.stream().reduce(0L, Long::sum));
+    assertThat(result.updateMillis()).isLessThanOrEqualTo(System.currentTimeMillis());
+    final var pointHistories = pointHistoryRepository.findAllByUserId(userId);
+    assertThat(pointHistories).hasSize(numOperations);
+  }
+
+  // NOTE: Test 간의 의존성을 없애기 위해 DirtiesContext를 사용합니다.
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+  @Test
+  @DisplayName("포인트 사용 동시성 검증")
+  void shouldSuccessfullyUsePointConcurrently() {
+    // given
+    final Long userId = 1L;
+    final Long point = 100000L;
+    final UserPoint userPoint = UserPoint.from(userId, point, System.currentTimeMillis());
+    // NOTE: insert가 없어 update로 초기값 설정
+    pointRepository.update(userPoint);
+    final int numOperations = 10;
+    final List<Long> amounts = IntStream.range(0, numOperations)
+        .mapToObj(i -> 50L * (i + 1))
+        .toList();
+
+    List<CompletableFuture<Void>> futures = amounts.stream()
+        .map(i -> CompletableFuture.runAsync(() -> target.use(UserPointCommand.Use.from(userId, i)))
+        )
+        .toList();
+
+    // when
+    CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+    // then
+    final var result = pointRepository.findById(userId).orElseThrow();
+    assertThat(result.id()).isEqualTo(userId);
+    assertThat(result.point()).isEqualTo(point - amounts.stream().reduce(0L, Long::sum));
+    assertThat(result.updateMillis()).isLessThanOrEqualTo(System.currentTimeMillis());
+    final var pointHistories = pointHistoryRepository.findAllByUserId(userId);
+    assertThat(pointHistories).hasSize(numOperations);
+  }
+
+  // NOTE: Test 간의 의존성을 없애기 위해 DirtiesContext를 사용합니다.
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+  @Test
+  @DisplayName("포인트 충전/사용 동시성 검증")
+  void shouldSuccessfullyChargeAndUsePointConcurrently() {
+    // given
+    final Long userId = 1L;
+    final Long point = 100000L;
+    final UserPoint userPoint = UserPoint.from(userId, point, System.currentTimeMillis());
+    // NOTE: insert가 없어 update로 초기값 설정
+    pointRepository.update(userPoint);
+    final int numOperations = 10;
+    final List<Long> amounts = IntStream.range(0, numOperations)
+        .mapToObj(i -> 50L * (i + 1))
+        .toList();
+
+    List<CompletableFuture<Void>> futures = amounts.stream()
+        .map(i -> CompletableFuture.runAsync(() -> {
+          if (i % 2 == 0) {
+            target.charge(UserPointCommand.Charge.from(userId, i));
+          } else {
+            target.use(UserPointCommand.Use.from(userId, i));
+          }
+        }))
+        .toList();
+
+    // when
+    CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+    // then
+    final var result = pointRepository.findById(userId).orElseThrow();
+    assertThat(result.id()).isEqualTo(userId);
+    assertThat(result.point()).isEqualTo(
+        point + amounts.stream().filter(i -> i % 2 == 0).reduce(0L, Long::sum)
+            - amounts.stream().filter(i -> i % 2 != 0).reduce(0L, Long::sum));
+    assertThat(result.updateMillis()).isLessThanOrEqualTo(System.currentTimeMillis());
+    final var pointHistories = pointHistoryRepository.findAllByUserId(userId);
+    assertThat(pointHistories).hasSize(numOperations);
+  }
+
 }
